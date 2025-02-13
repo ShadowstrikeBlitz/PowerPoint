@@ -88,6 +88,13 @@ local function teleportToNPC()
 				npcFoundWithHRP = true
 			end
 		end
+		for _, npc in ipairs(npcsFolder:GetChildren()) do
+			local humanoid = npc:FindFirstChild("Humanoid")
+			local rootPart = npc:FindFirstChild("HumanoidRootPart")
+			if npc:IsA("Model") and humanoid and humanoid.Health <= 0 and not run then
+				npc:Destroy()
+			end
+		end
 		if not ac then
 			npcFoundWithHRP = false
 		end
