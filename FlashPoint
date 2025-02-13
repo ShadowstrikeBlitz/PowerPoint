@@ -35,7 +35,7 @@ local loopdelay = 2
 local upgradedelay = 0.2
 local punchdelay = 0.01
 local etwdelay = 2
-local npccc = 10
+local npccc = 5
 
 local npcCheckCount = {} 
 local etw = false
@@ -63,9 +63,8 @@ local function teleportToPart(part)
 end
 
 local function forceLookDown()
-	-- Set the camera's CFrame to make the player look downwards
 	local cameraPosition = camera.CFrame.Position
-	local lookAt = cameraPosition - Vector3.new(0, 10, 0) -- Adjust the Vector3 to make the player look further down
+	local lookAt = cameraPosition - Vector3.new(0, 10, 0)
 	camera.CFrame = CFrame.new(cameraPosition, lookAt)
 end
 
@@ -82,7 +81,7 @@ local function teleportToNPC()
 			if npc:IsA("Model") and humanoid and humanoid.Health > 0 and rootPart and not run then
 				repeat
 					npcCheckCount[npc] = (npcCheckCount[npc] or 0) + 1
-					teleportToPart(npc)
+					teleportToPart(rootPart)
 					wait(teleportDelay)
 				until humanoid.Health <= 0 or not run or not ac or npcCheckCount[npc] >= npccc
 				npcCheckCount[npc] = nil
