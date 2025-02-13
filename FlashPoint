@@ -90,7 +90,6 @@ local function teleportToNPC()
 		end
 		for _, npc in ipairs(npcsFolder:GetChildren()) do
 			local humanoid = npc:FindFirstChild("Humanoid")
-			local rootPart = npc:FindFirstChild("HumanoidRootPart")
 			if npc:IsA("Model") and humanoid and humanoid.Health <= 0 and not run then
 				npc:Destroy()
 			end
@@ -124,8 +123,8 @@ local ShadowstrikeBlitz = loadstring(game:HttpGet('https://raw.githubusercontent
 
 local Window = ShadowstrikeBlitz:CreateWindow({
 	Name = "Flashpoint World Collide",
-	LoadingTitle = "ShadowstrikeBlitz Project",
-	LoadingSubtitle = "by NotShadowstrikeBlitz",
+	LoadingTitle = game.Name,
+	LoadingSubtitle = "by ShadowstrikeBlitz",
 	ConfigurationSaving = {
 		Enabled = false,
 		FolderName = nil, -- Create a custom folder for your hub/game
