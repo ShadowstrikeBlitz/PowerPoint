@@ -110,13 +110,13 @@ end
 local ArrayField = loadstring(game:HttpGet('https://raw.githubusercontent.com/UI-Interface/ArrayField/main/Source.lua'))()
 
 local Window = ArrayField:CreateWindow({
-	Name = "ArrayField Example Window",
-	LoadingTitle = "ArrayField Interface Suite",
-	LoadingSubtitle = "by Arrays",
+	Name = "Flashpoint World Collide",
+	LoadingTitle = "ShadowstrikeBlitz Project",
+	LoadingSubtitle = "by NotShadowstrikeBlitz",
 	ConfigurationSaving = {
 		Enabled = false,
 		FolderName = nil, -- Create a custom folder for your hub/game
-		FileName = "ArrayField"
+		FileName = "NotShadowstrikeBlitz"
 	},
 	Discord = {
 		Enabled = false,
