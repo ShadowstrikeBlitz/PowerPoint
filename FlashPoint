@@ -122,8 +122,8 @@ end
 local ShadowstrikeBlitz = loadstring(game:HttpGet('https://raw.githubusercontent.com/ShadowstrikeBlitz/WindowPowerPoint/refs/heads/main/source.lua'))()
 
 local Window = ShadowstrikeBlitz:CreateWindow({
-	Name = "Flashpoint World Collide",
-	LoadingTitle = game.Name,
+	Name = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name,
+	LoadingTitle = "Project PowerPoint",
 	LoadingSubtitle = "by ShadowstrikeBlitz",
 	ConfigurationSaving = {
 		Enabled = false,
