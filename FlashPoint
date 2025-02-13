@@ -15,9 +15,15 @@ local attack = MobileButtons:FindFirstChild("Attack")
 local levellist = Upgrades:FindFirstChild("Frame"):FindFirstChild("UpgradeList")
 local rabirhtlist = Upgrades:FindFirstChild("RebirthUpgrades"):FindFirstChild("UpgradeList")
 
+local rebirthbttn = Upgrades:FindFirstChild("RebirthUpgrades"):FindFirstChild("RebirthButton")
+
 local data = player:FindFirstChild("PlayerData")
-local rt = data:FindFirstChild("Currency"):FindFirstChild("RebirthTokens")
-local sp = data:FindFirstChild("Currency"):FindFirstChild("Skillpoints")
+local Currency = data:FindFirstChild("Currency")
+
+local rt = Currency:FindFirstChild("RebirthTokens")
+local sp = Currency:FindFirstChild("Skillpoints")
+local lvl = Currency:FindFirstChild("Level")
+
 local lud = data:FindFirstChild("Upgrades")
 local rud = data:FindFirstChild("RebirthUpgrades")
 
@@ -37,6 +43,7 @@ local dtw = false
 local ap = false
 local ac = false
 local au = false
+local ar = false
 
 local run = false
 local lsupgrade = ""
@@ -203,6 +210,32 @@ end
 
 -- v Stat Window Function v
 
+local function autorebirth()
+	local totalupgrades = 0
+	while ar do
+		if lvl.Value >= 100 then
+			for _, child in pairs(lud:GetChildren())  do
+				totalupgrades = totalupgrades + child.Value
+			end
+			if totalupgrades == 300 then
+				for _, connection in pairs(getconnections(rebirthbttn.MouseButton1Click)) do
+					connection.Function()
+				end
+				local YSP = PlayerGui:FindFirstChild("YouSurePrompt?")
+				if YSP then
+					local Yes = YSP:FindFirstChild("PresetLayout"):FindFirstChild("Yes")
+					if Yes then
+						for _, connection in pairs(getconnections(Yes.MouseButton1Click)) do
+							connection.Function()
+						end
+					end
+				end
+			end
+		end
+		wait(loopdelay)
+	end
+end
+
 local function levelskillupgrade(value,ui)
 	lsupgrade = ui.Name
 	if not value then
@@ -299,6 +332,16 @@ local Toggle = main:CreateToggle({
 
 -- Stat Windows Only
 
+local Toggle = main:CreateToggle({
+	Name = "Auto Rebirth",
+	CurrentValue = false,
+	Flag = "AR",
+	Callback = function(Value)
+		ar = Value
+		autorebirth()
+	end,
+})
+
 local Dropdown = stat:CreateDropdown({
 	Name = "Upgrade Level Skills",
 	Options = {"All","Speed","FlashTime","Stamina","Boost","Health","Damage",},
@@ -351,19 +394,19 @@ local Button = extra:CreateButton({
 		ba.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;ca.Parent=ba;ca.Active=true
 		ca.BackgroundColor3=Color3.new(0.176471,0.176471,0.176471)ca.Draggable=true
 		ca.Position=UDim2.new(0.698610067,0,0.098096624,0)ca.Size=UDim2.new(0,370,0,52)
-		ca.Font=Enum.Font.SourceSansSemibold;ca.Text="Anti AFK Script"ca.TextColor3=Color3.new(0,1,1)
+		ca.Font=Enum.Font.SourceSansSemibold;ca.Text="Anti Afk"ca.TextColor3=Color3.new(0,1,1)
 		ca.TextSize=22;da.Parent=ca
 		da.BackgroundColor3=Color3.new(0.196078,0.196078,0.196078)da.Position=UDim2.new(0,0,1.0192306,0)
 		da.Size=UDim2.new(0,370,0,107)_b.Parent=da
 		_b.BackgroundColor3=Color3.new(0.176471,0.176471,0.176471)_b.Position=UDim2.new(0,0,0.800455689,0)
-		_b.Size=UDim2.new(0,370,0,21)_b.Font=Enum.Font.Arial;_b.Text="made by Your Mom"
+		_b.Size=UDim2.new(0,370,0,21)_b.Font=Enum.Font.Arial;_b.Text="Made by luca#5432"
 		_b.TextColor3=Color3.new(0,1,1)_b.TextSize=20;ab.Parent=da
 		ab.BackgroundColor3=Color3.new(0.176471,0.176471,0.176471)ab.Position=UDim2.new(0,0,0.158377,0)
 		ab.Size=UDim2.new(0,370,0,44)ab.Font=Enum.Font.ArialBold;ab.Text="Status: Active"
 		ab.TextColor3=Color3.new(0,1,1)ab.TextSize=20;local bb=game:service'VirtualUser'
 		game:service'Players'.LocalPlayer.Idled:connect(function()
 			bb:CaptureController()bb:ClickButton2(Vector2.new())
-			ab.Text="Roblox tried to kick u but i kicked him instead"wait(2)ab.Text="Status : Active"end)
+			ab.Text="Roblox tried kicking you buy I didnt let them!"wait(2)ab.Text="Status : Active"end)
 	end,
 })
 
