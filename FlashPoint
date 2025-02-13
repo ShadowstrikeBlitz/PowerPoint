@@ -35,7 +35,7 @@ local loopdelay = 2
 local upgradedelay = 0.2
 local punchdelay = 0.01
 local etwdelay = 2
-local npccc = 5
+local npccc = 15
 
 local npcCheckCount = {} 
 local etw = false
@@ -85,6 +85,7 @@ local function teleportToNPC()
 					wait(teleportDelay)
 				until humanoid.Health <= 0 or not run or not ac or npcCheckCount[npc] >= npccc
 				npcCheckCount[npc] = nil
+				npc:Destroy()
 				npcFoundWithHRP = true
 			end
 		end
@@ -122,9 +123,9 @@ end
 local ShadowstrikeBlitz = loadstring(game:HttpGet('https://raw.githubusercontent.com/ShadowstrikeBlitz/WindowPowerPoint/refs/heads/main/source.lua'))()
 
 local Window = ShadowstrikeBlitz:CreateWindow({
-	Name = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name,
-	LoadingTitle = "Project PowerPoint",
-	LoadingSubtitle = "by ShadowstrikeBlitz",
+	Name = "Flashpoint World Collide",
+	LoadingTitle = "ShadowstrikeBlitz Project",
+	LoadingSubtitle = "by NotShadowstrikeBlitz",
 	ConfigurationSaving = {
 		Enabled = false,
 		FolderName = nil, -- Create a custom folder for your hub/game
