@@ -277,6 +277,21 @@ local function autolevelupgrade()
 					end
 				end
 			end
+		elseif lsui == nil then
+			ShadowstrikeBlitz:Notify({
+				Title = "Error",
+				Content = 'Seems that you have turn on "Auto Upgrade" without selecting the option',
+				Duration = 6.5,
+				Image = 4384403012,
+				Actions = { -- Notification Buttons
+					Ignore = {
+						Name = "Okay!",
+						Callback = function()
+							print("The user tapped Okay!")
+						end
+					},
+				},
+			})		
 		end
 		wait(loopdelay)
 	end
@@ -284,9 +299,9 @@ end
 
 -- ^ Stat Window Function ^
 
-local main = Window:CreateTab("Main", 0)
-local stat = Window:CreateTab("Stat", 0)
-local extra = Window:CreateTab("Extra", 0)
+local main = Window:CreateTab("Main", 4384400118)
+local stat = Window:CreateTab("Stat", 4384400825)
+local extra = Window:CreateTab("Extra", 4370346121)
 
 -- Main Windows Only
 
@@ -332,7 +347,7 @@ local Toggle = main:CreateToggle({
 
 -- Stat Windows Only
 
-local Toggle = main:CreateToggle({
+local Toggle = stat:CreateToggle({
 	Name = "Auto Rebirth",
 	CurrentValue = false,
 	Flag = "AR",
