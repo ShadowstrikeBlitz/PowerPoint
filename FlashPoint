@@ -2,9 +2,16 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local camera = game.Workspace.CurrentCamera
 
+local userInputService = game:GetService("UserInputService")
+local runService = game:GetService("RunService")
+
+
 local humanoid = character:WaitForChild("Humanoid")
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local PlayerGui = player:FindFirstChild("PlayerGui")
+
+local rfolder = game.Workspace:FindFirstChild("Races")
+
 local MainUI = PlayerGui:FindFirstChild("MainUI")
 local InGame = MainUI:FindFirstChild("Frames"):FindFirstChild("InGame")
 local Upgrades = InGame:FindFirstChild("Frames"):FindFirstChild("Upgrades")
@@ -35,7 +42,7 @@ local loopdelay = 2
 local upgradedelay = 0.2
 local punchdelay = 0.01
 local etwdelay = 2
-local npccc = 15
+local cpdelay = 0.02
 
 local npcCheckCount = {} 
 local etw = false
@@ -44,6 +51,7 @@ local ap = false
 local ac = false
 local au = false
 local ar = false
+local rcpl = false
 
 local run = false
 local lsupgrade = ""
@@ -80,12 +88,9 @@ local function teleportToNPC()
 			local rootPart = npc:FindFirstChild("HumanoidRootPart")
 			if npc:IsA("Model") and humanoid and humanoid.Health > 0 and rootPart and not run then
 				repeat
-					npcCheckCount[npc] = (npcCheckCount[npc] or 0) + 1
 					teleportToPart(npc)
 					wait(teleportDelay)
-				until humanoid.Health <= 0 or not run or not ac or npcCheckCount[npc] >= npccc
-				npcCheckCount[npc] = nil
-				npc:Destroy()
+				until humanoid.Health <= 0 or not run or not ac
 				npcFoundWithHRP = true
 			end
 		end
@@ -128,7 +133,7 @@ local Window = ShadowstrikeBlitz:CreateWindow({
 	LoadingSubtitle = "by NotShadowstrikeBlitz",
 	ConfigurationSaving = {
 		Enabled = false,
-		FolderName = nil, -- Create a custom folder for your hub/game
+		FolderName = nil,
 		FileName = "NotShadowstrikeBlitz"
 	},
 	Discord = {
@@ -141,8 +146,8 @@ local Window = ShadowstrikeBlitz:CreateWindow({
 		Title = "Untitled",
 		Subtitle = "Key System",
 		Note = "No method of obtaining the key is provided",
-		FileName = "Key", -- It is recommended to use something unique as other scripts using ShadowstrikeBlitz may overwrite your key file
-		SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+		FileName = "FlashPointByNotShadowstrikeBlitz", -- It is recommended to use something unique as other scripts using ShadowstrikeBlitz may overwrite your key file
+		SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
 		GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like ShadowstrikeBlitz to get the key from
 		Actions = {
 			[1] = {
@@ -152,7 +157,7 @@ local Window = ShadowstrikeBlitz:CreateWindow({
 				end,
 			}
 		},
-		Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+		Key = {"NotShadowstrikeBlitz_WelcomesYou"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
 	}
 })
 
@@ -208,6 +213,76 @@ local function autocrime()
 		if not run then
 			teleportToCrimeSpawns()
 		end
+		wait(loopdelay)
+	end
+end
+
+local function racechecker()
+	local children = rfolder:GetChildren()
+	if children then
+		for _, child in ipairs(children) do
+			local cp = child:FindFirstChild("Checkpoints")
+			if cp then
+				for _, a in ipairs(cp:GetChildren()) do
+					local hit = a:FindFirstChild("Hit")
+					if hit and hit:FindFirstChildWhichIsA("TouchTransmitter") then
+						return child
+					end
+				end
+			end
+		end
+	else
+		return nil
+	end
+end
+
+local function raceorder()
+	local race = racechecker()
+
+	if race then
+		local cp = race:FindFirstChild("Checkpoints")
+		local children = cp:GetChildren()
+
+		table.sort(children, function(a, b)
+			local numA = tonumber(a.Name)
+			local numB = tonumber(b.Name)
+
+			if numA and numB then
+				return numA < numB
+			else
+				return a.Name:lower() < b.Name:lower()
+			end
+		end)
+
+		local sortedCheckpoints = {}
+		for _, child in ipairs(children) do
+			table.insert(sortedCheckpoints, child)
+		end
+		return sortedCheckpoints, race -- Return the objects, not just names
+	end
+end
+
+local function aimlock()
+	while rcpl do
+		local sortedCheckpoints = raceorder()
+		if sortedCheckpoints then
+			for _, checkpoint in ipairs(sortedCheckpoints) do
+				local plight = checkpoint:FindFirstChild("inner"):FindFirstChildWhichIsA("PointLight").Enabled
+				if plight == true then
+					local targetPart = checkpoint:FindFirstChild("Hit")
+					local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+					repeat
+						if humanoidRootPart and targetPart then
+							local cameraOffset = camera.CFrame.Position - humanoidRootPart.Position
+							local newCameraPosition = humanoidRootPart.Position + cameraOffset
+							camera.CFrame = CFrame.new(newCameraPosition, targetPart.Position)
+						end
+						wait(cpdelay)
+					until plight == false or not rcpl or not targetPart:FindFirstChild("TouchInterest")
+				end
+			end
+		end
+
 		wait(loopdelay)
 	end
 end
@@ -351,6 +426,16 @@ local Toggle = main:CreateToggle({
 	end,
 })
 
+local Toggle = main:CreateToggle({
+	Name = "Race Checkpoint Lock",
+	CurrentValue = false,
+	Flag = "RCPL",
+	Callback = function(Value)
+		rcpl = Value
+		aimlock()
+	end,
+})
+
 -- Stat Windows Only
 
 local Toggle = stat:CreateToggle({
@@ -368,7 +453,7 @@ local Dropdown = stat:CreateDropdown({
 	Options = {"All","Speed","FlashTime","Stamina","Boost","Health","Damage",},
 	CurrentOption = {"Select an option"},
 	MultipleOptions = false,
-	Flag = "AULS", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	Flag = "AULS",
 	Callback = function(Options)
 		if Options == "All" then
 			levelskillupgrade(true,"All")
@@ -390,7 +475,7 @@ local Dropdown = stat:CreateDropdown({
 local Toggle = stat:CreateToggle({
 	Name = "Auto Upgrade",
 	CurrentValue = false,
-	Flag = "AU", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	Flag = "AU",
 	Callback = function(Value)
 		au = Value
 		autolevelupgrade()
