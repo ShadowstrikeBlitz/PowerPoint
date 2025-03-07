@@ -1,0 +1,465 @@
+local ws = game:GetService("Workspace")
+local uis = game:GetService("UserInputService")
+local plr = game:GetService("Players").LocalPlayer
+local runService = game:GetService("RunService")
+local lighting = game:GetService('Lighting')
+
+local Bloom = lighting:FindFirstChild("Bloom")
+local Blur = lighting:FindFirstChild("Blur")
+local DepthOfField = lighting:FindFirstChild("DepthOfField")
+local SunRays = lighting:FindFirstChild("SunRays")
+
+if Bloom then
+	Bloom.Enabled = false
+end
+if Blur then
+	Blur.Enabled = false
+end
+if DepthOfField then
+	DepthOfField.Enabled = false
+end
+if SunRays then
+	SunRays.Enabled = false
+end
+
+local screenui = Instance.new("ScreenGui")
+screenui.Parent = plr.PlayerGui
+screenui.ResetOnSpawn = false
+screenui.Name = "_PRAY_TO_GOD_"
+
+local function uiDesign(Parent)
+	local uiarc = Instance.new("UIAspectRatioConstraint")
+	uiarc.Parent = Parent
+	uiarc.AspectRatio = 4
+	uiarc.AspectType = Enum.AspectType.FitWithinMaxSize
+	uiarc.DominantAxis = Enum.DominantAxis.Width
+
+	local uistroke = Instance.new("UIStroke")
+	uistroke.Parent = Parent
+	uistroke.LineJoinMode = Enum.LineJoinMode.Round
+	uistroke.Thickness = 3
+	uistroke.Transparency = 0
+end
+
+local TempTxt = Instance.new("TextLabel")
+TempTxt.Parent = screenui
+TempTxt.BackgroundTransparency = 1
+TempTxt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TempTxt.TextScaled = true
+TempTxt.TextStrokeTransparency = 0.5
+TempTxt.Text = "Press T to toggle lowest temperature checking"
+TempTxt.AnchorPoint = Vector2.new(0, 0)
+TempTxt.Position = UDim2.new(0.01, 0, 0.7, 0)
+TempTxt.Size = UDim2.new(0.2, 0, 0.2, 0)
+uiDesign(TempTxt)
+
+local HuntTxt = Instance.new("TextLabel")
+HuntTxt.Parent = screenui
+HuntTxt.BackgroundTransparency = 1
+HuntTxt.TextColor3 = Color3.fromRGB(255, 255, 255)
+HuntTxt.TextScaled = true
+HuntTxt.TextStrokeTransparency = 0.5
+HuntTxt.Text = "Press R to toggle hunt highlight"
+HuntTxt.AnchorPoint = Vector2.new(0, 0)
+HuntTxt.Position = UDim2.new(0.01, 0, 0.6, 0)
+HuntTxt.Size = UDim2.new(0.2, 0, 0.2, 0)
+uiDesign(HuntTxt)
+
+local GRTxt = Instance.new("TextLabel")
+GRTxt.Parent = screenui
+GRTxt.BackgroundTransparency = 1
+GRTxt.TextColor3 = Color3.fromRGB(255, 255, 255)
+GRTxt.TextScaled = true
+GRTxt.TextStrokeTransparency = 0.5
+GRTxt.Text = "Press C to toggle find ghost room"
+GRTxt.AnchorPoint = Vector2.new(1, 0)
+GRTxt.Position = UDim2.new(0.99, 0, 0.4, 0)
+GRTxt.Size = UDim2.new(0.2, 0, 0.2, 0)
+GRTxt.Visible = false
+uiDesign(GRTxt)
+
+local map = ws:FindFirstChild("Map")
+local zones = map and map:FindFirstChild("Zones")
+local checkingTemperature = false
+local checkingGhost = false
+local Vision = false
+local toggleui = true
+local room = {}
+local gr = nil
+local togglefindgr = false
+local itemsHL = false
+local genHL
+
+local gen = map:FindFirstChild("Generators")
+if gen then
+	local mesh = gen:FindFirstChild("GeneratorMesh")
+	if mesh then
+		local hl = gen:FindFirstChild("Highlight")
+		if hl then
+			hl:Destroy()
+		end
+	end
+end
+
+local function toggleGhostRoom(rootPart)
+	togglefindgr = not togglefindgr
+
+	if togglefindgr then
+		while togglefindgr do
+			local Ghost = ws:FindFirstChild("Ghost")
+
+			if Ghost then
+				local rootpart = Ghost:FindFirstChild("Humanoid")
+				if zones then
+					room = {}
+
+					for _, child in ipairs(zones:GetChildren()) do
+						if child:IsA("Part") then
+							for _, subChild in ipairs(child:GetChildren()) do
+								if subChild:IsA("Part") then
+									local partPos = subChild.Position
+									local partSize = subChild.Size / 2
+									local playerPos = rootpart.WalkToPoint
+
+									local minX, maxX = partPos.X - partSize.X, partPos.X + partSize.X
+									local minY, maxY = partPos.Y - partSize.Y, partPos.Y + partSize.Y
+									local minZ, maxZ = partPos.Z - partSize.Z, partPos.Z + partSize.Z
+
+									if (playerPos.X > minX and playerPos.X < maxX) and
+										(playerPos.Y > minY and playerPos.Y < maxY) and
+										(playerPos.Z > minZ and playerPos.Z < maxZ) then
+										table.insert(room, subChild.Name)
+									end
+								end
+							end
+						end
+					end
+				end
+			else
+				room = {}
+			end
+
+			if #room > 0 then
+				if gr == nil then
+					gr = room[1]
+					GRTxt.Text = "Ghost room: "..room[1]
+				elseif gr == room [1] then
+					GRTxt.Text = "Ghost room: "..room[1]
+				elseif gr ~= room[1] then
+					GRTxt.Text = "Ghost has moved to room: "..room[1]
+					gr = room[1]
+				end
+
+			elseif #room == 0 and gr == nil then
+				GRTxt.Text = "No ghost room detected yet"
+			end
+
+			task.wait(1)
+		end
+	else
+		GRTxt.Text = "Ghost room finder disable. Press C to enable"
+	end
+end
+
+
+local function toggleVision()
+	Vision = not Vision
+	if Vision then
+		local ColorCorrection = lighting:FindFirstChild("ColorCorrection")
+		if ColorCorrection then
+			ColorCorrection.Brightness = 0.5
+			ColorCorrection.Contrast = 0.7
+			ColorCorrection.Saturation = -1
+			ColorCorrection.TintColor = Color3.fromRGB(183, 255, 213)
+			lighting.Ambient = Color3.fromRGB(50,50,50)
+		else
+			local cc = Instance.new("ColorCorrectionEffect")
+			cc.Parent = lighting
+			cc.Brightness = 0.5
+			cc.Contrast = 0.7
+			cc.Saturation = -1
+			cc.TintColor = Color3.fromRGB(183, 255, 213)
+			lighting.Ambient = Color3.fromRGB(50,50,50)
+		end
+		Bloom.Intensity = 1
+		Bloom.Size = 30
+	else
+		local ColorCorrection = lighting:FindFirstChild("ColorCorrection")
+		if ColorCorrection then
+			ColorCorrection.Brightness = 0
+			ColorCorrection.Contrast = 0
+			ColorCorrection.Saturation = 0
+			ColorCorrection.TintColor = Color3.fromRGB(255,255,255)
+			lighting.Ambient = Color3.fromRGB(11, 11, 11)
+		end
+		Bloom.Intensity = 0.3
+		Bloom.Size = 26
+	end
+end
+
+local function printzonetemp()
+	local at = {}
+
+	if zones then
+		for _, child in ipairs(zones:GetChildren()) do
+			if child:IsA("Part") then
+				for _, subChild in ipairs(child:GetChildren()) do
+					if string.find(subChild.Name, "Temperature") and subChild:IsA("NumberValue") then
+						local temp = subChild.Value
+						if temp then
+							at[child.Name] = temp
+						end
+					end
+				end
+			end
+		end
+	end
+
+	local tempList = {}
+	for zoneName, zoneTemp in pairs(at) do
+		table.insert(tempList, {name = zoneName, temp = zoneTemp})
+	end
+
+	table.sort(tempList, function(a, b)
+		return a.temp > b.temp
+	end)
+	print("Zones with Temperature (High to Low) ----------------------")
+	for _, data in ipairs(tempList) do
+		print(string.format("%.2f", data.temp).." - "..data.name)
+	end
+	print("-----------------------------------------------------------")
+end
+
+local function checkzonetemp()
+	local at = {}
+
+	if zones then
+		for _, child in ipairs(zones:GetChildren()) do
+			if child:IsA("Part") then
+				for _, subChild in ipairs(child:GetChildren()) do
+					if string.find(subChild.Name, "Temperature") and subChild:IsA("NumberValue") then
+						local temp = subChild.Value
+						if temp then
+							at[child.Name] = temp
+						end
+					end
+				end
+			end
+		end
+	end
+
+	local tempList = {}
+	for zoneName, zoneTemp in pairs(at) do
+		table.insert(tempList, {name = zoneName, temp = zoneTemp})
+	end
+
+	table.sort(tempList, function(a, b)
+		return a.temp > b.temp
+	end)
+
+	if #tempList > 0 then
+		TempTxt.Text = string.format("%.2f", tempList[#tempList].temp) .. " in " .. tempList[#tempList].name
+	else
+		TempTxt.Text = "No temperature data found"
+	end
+end
+
+local function toggleTemperatureCheck()
+	checkingTemperature = not checkingTemperature
+	if checkingTemperature then
+		while checkingTemperature do
+			checkzonetemp()
+			task.wait(0.5)
+		end
+	else
+		TempTxt.Text = "Temperature checking stopped. Press T to enable"
+	end
+end
+
+local function HighLights(Part, loop)
+	if loop then
+		local highlights = {}
+		for _, child in ipairs(Part:GetChildren()) do
+			if child:IsA("Highlight") then
+				table.insert(highlights, child)
+			end
+		end
+
+		for i = 2, #highlights do
+			highlights[i]:Destroy()
+		end
+
+		local hl = Part:FindFirstChild("Highlight")
+		if not hl then
+			hl = Instance.new("Highlight")
+			hl.Parent = Part
+		end
+		hl.Enabled = true
+	end
+	if loop == "Items" then
+		itemsHL = not itemsHL
+		if itemsHL then
+			local highlights = {}
+			for _, child in ipairs(Part:GetChildren()) do
+				if child:IsA("Highlight") then
+					table.insert(highlights, child)
+				end
+			end
+
+			for i = 2, #highlights do
+				highlights[i]:Destroy()
+			end
+
+			local hl = Part:FindFirstChild("Highlight")
+			if not hl then
+				hl = Instance.new("Highlight")
+				hl.Parent = Part
+			end
+			hl.Enabled = true
+		else
+			local highlights = {}
+			for _, child in ipairs(Part:GetChildren()) do
+				if child:IsA("Highlight") then
+					table.insert(highlights, child)
+				end
+			end
+			for i = 2, #highlights do
+				highlights[i]:Destroy()
+			end
+			local hl = Part:FindFirstChild("Highlight")
+			if not hl then
+				hl = Instance.new("Highlight")
+				hl.Parent = Part
+			end
+			hl.Enabled = false
+		end
+	elseif loop == "Generator" then
+		genHL = not genHL
+		if genHL then
+			local highlights = {}
+			for _, child in ipairs(Part:GetChildren()) do
+				if child:IsA("Highlight") then
+					table.insert(highlights, child)
+				end
+			end
+
+			for i = 2, #highlights do
+				highlights[i]:Destroy()
+			end
+
+			local hl = Part:FindFirstChild("Highlight")
+			if not hl then
+				hl = Instance.new("Highlight")
+				hl.Parent = Part
+			end
+			hl.FillColor = Color3.fromRGB(255, 0, 0)
+			hl.FillTransparency = 0.5
+			hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+			hl.OutlineTransparency = 0
+			hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+			hl.Enabled = true
+		else
+			local highlights = {}
+			for _, child in ipairs(Part:GetChildren()) do
+				if child:IsA("Highlight") then
+					table.insert(highlights, child)
+				end
+			end
+			for i = 2, #highlights do
+				highlights[i]:Destroy()
+			end
+			local hl = Part:FindFirstChild("Highlight")
+			if not hl then
+				hl = Instance.new("Highlight")
+				hl.Parent = Part
+			end
+			hl.Enabled = false
+		end
+	end
+end
+
+local function checkGhost()
+	checkingGhost = not checkingGhost
+
+	if checkingGhost then
+		while checkingGhost do
+			local Ghost = ws:FindFirstChild("Ghost")
+			if Ghost then 
+				HuntTxt.Text = "AAAAAH ITS HUNTING!!!"
+				HuntTxt.TextColor3 = Color3.fromRGB(255, 0, 0)
+
+				local rootpart = Ghost:FindFirstChild("HumanoidRootPart")
+				if rootpart then
+					rootpart.Transparency = 0
+				end
+
+				HighLights(Ghost, true)
+
+			else
+				HuntTxt.Text = "Hunt? What Hunt?"
+				HuntTxt.TextColor3 = Color3.fromRGB(0, 255, 0)
+			end
+			task.wait(0.5)
+		end
+	else
+		HuntTxt.Text = "Hunt highlight disable. Press R to enable"
+		HuntTxt.TextColor3 = Color3.fromRGB(255, 255, 255)
+	end
+end
+
+local function CurseObjects()
+	local SC = ws:FindFirstChild("SummoningCircle")
+	local OJ = ws:FindFirstChild("Ouija Board")
+	local TC = map:FindFirstChild("Items"):FindFirstChild("Tarot Cards")
+
+	if SC then
+		HighLights(SC, "Items")
+	elseif OJ then
+		HighLights(OJ, "Items")
+	elseif TC then
+		HighLights(TC, "Items")
+	end
+end
+
+local function Generator()
+	local gen = map:FindFirstChild("Generators")
+	if gen then
+		local mesh = gen:FindFirstChild("GeneratorMesh")
+		if mesh then
+			local hl = gen:FindFirstChild("Highlight")
+			if hl then
+				hl:Destroy()
+			end
+			HighLights(mesh, "Generator")
+		end
+	end
+end
+
+uis.InputBegan:connect(function(input, Processed)
+	if not Processed and input.KeyCode == Enum.KeyCode.R then
+		checkGhost()
+	end
+	if not Processed and input.KeyCode == Enum.KeyCode.T then
+		toggleTemperatureCheck()
+	end
+	if not Processed and input.KeyCode == Enum.KeyCode.N then
+		toggleVision()
+	end
+	if not Processed and input.KeyCode == Enum.KeyCode.M then
+		printzonetemp()
+	end
+	if not Processed and input.KeyCode == Enum.KeyCode.Equals then
+		CurseObjects()
+	end
+	if not Processed and input.KeyCode == Enum.KeyCode.Minus then
+		Generator()
+	end
+	if not Processed and input.KeyCode == Enum.KeyCode.P then
+		toggleui = not toggleui
+		if toggleui then
+			screenui.Enabled = true
+		else
+			screenui.Enabled = false
+		end
+	end
+end)
