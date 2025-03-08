@@ -409,7 +409,7 @@ end
 
 local function CurseObjects()
 	local SC = ws:FindFirstChild("SummoningCircle")
-	local OJ = ws:FindFirstChild("Ouija Board")
+	local OJ = ws:FindFirstChild("Spirit Board")
 	local TC = map:FindFirstChild("Items"):FindFirstChild("Tarot Cards")
 
 	if SC then
