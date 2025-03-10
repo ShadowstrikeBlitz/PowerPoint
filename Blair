@@ -393,7 +393,7 @@ local Window = ShadowstrikeBlitz:CreateWindow({
 	LoadingSubtitle = "by NotShadowstrikeBlitz",
 	ConfigurationSaving = {
 		Enabled = false,
-		FolderName = nil,
+		FolderName = "BlairBLitz",
 		FileName = "NotShadowstrikeBlitz"
 	},
 	Discord = {
@@ -527,9 +527,13 @@ local Button = extra:CreateButton({
 	end,
 })
 
-uis.InputBegan:connect(function(input, Processed)
-	if not Processed and input.KeyCode == Enum.KeyCode.N then
-	    Vision = not Vision
-		toggleVision()
-	end
-end)
+local Keybind = main:CreateKeybind({
+   Name = "Night Vision",
+   CurrentKeybind = "N",
+   HoldToInteract = false,
+   Flag = "Keybind1",
+   Callback = function(Keybind)
+       Vision = not Vision
+       toggleVision()
+   end,
+})
