@@ -89,81 +89,11 @@ local gr = nil
 local togglefindgr = false
 local itemsHL = false
 local genHL
-
-local gen = map:FindFirstChild("Generators")
-if gen then
-	local mesh = gen:FindFirstChild("GeneratorMesh")
-	if mesh then
-		local hl = gen:FindFirstChild("Highlight")
-		if hl then
-			hl:Destroy()
-		end
-	end
-end
-
-local function toggleGhostRoom(rootPart)
-	togglefindgr = not togglefindgr
-
-	if togglefindgr then
-		while togglefindgr do
-			local Ghost = ws:FindFirstChild("Ghost")
-
-			if Ghost then
-				local rootpart = Ghost:FindFirstChild("Humanoid")
-				if zones then
-					room = {}
-
-					for _, child in ipairs(zones:GetChildren()) do
-						if child:IsA("Part") then
-							for _, subChild in ipairs(child:GetChildren()) do
-								if subChild:IsA("Part") then
-									local partPos = subChild.Position
-									local partSize = subChild.Size / 2
-									local playerPos = rootpart.WalkToPoint
-
-									local minX, maxX = partPos.X - partSize.X, partPos.X + partSize.X
-									local minY, maxY = partPos.Y - partSize.Y, partPos.Y + partSize.Y
-									local minZ, maxZ = partPos.Z - partSize.Z, partPos.Z + partSize.Z
-
-									if (playerPos.X > minX and playerPos.X < maxX) and
-										(playerPos.Y > minY and playerPos.Y < maxY) and
-										(playerPos.Z > minZ and playerPos.Z < maxZ) then
-										table.insert(room, subChild.Name)
-									end
-								end
-							end
-						end
-					end
-				end
-			else
-				room = {}
-			end
-
-			if #room > 0 then
-				if gr == nil then
-					gr = room[1]
-					GRTxt.Text = "Ghost room: "..room[1]
-				elseif gr == room [1] then
-					GRTxt.Text = "Ghost room: "..room[1]
-				elseif gr ~= room[1] then
-					GRTxt.Text = "Ghost has moved to room: "..room[1]
-					gr = room[1]
-				end
-
-			elseif #room == 0 and gr == nil then
-				GRTxt.Text = "No ghost room detected yet"
-			end
-
-			task.wait(1)
-		end
-	else
-		GRTxt.Text = "Ghost room finder disable. Press C to enable"
-	end
-end
-
+local BBLHL = false
+local TPWS = 0
+local TPW = false
 
 local function toggleVision()
-	Vision = not Vision
 	if Vision then
 		local ColorCorrection = lighting:FindFirstChild("ColorCorrection")
 		if ColorCorrection then
@@ -265,7 +195,6 @@ local function checkzonetemp()
 end
 
 local function toggleTemperatureCheck()
-	checkingTemperature = not checkingTemperature
 	if checkingTemperature then
 		while checkingTemperature do
 			checkzonetemp()
@@ -295,9 +224,24 @@ local function HighLights(Part, loop)
 			hl.Parent = Part
 		end
 		hl.Enabled = true
+	else
+		local highlights = {}
+		for _, child in ipairs(Part:GetChildren()) do
+			if child:IsA("Highlight") then
+				table.insert(highlights, child)
+			end
+		end
+		for i = 2, #highlights do
+			highlights[i]:Destroy()
+		end
+		local hl = Part:FindFirstChild("Highlight")
+		if not hl then
+			hl = Instance.new("Highlight")
+			hl.Parent = Part
+		end
+		hl.Enabled = false
 	end
 	if loop == "Items" then
-		itemsHL = not itemsHL
 		if itemsHL then
 			local highlights = {}
 			for _, child in ipairs(Part:GetChildren()) do
@@ -334,7 +278,6 @@ local function HighLights(Part, loop)
 			hl.Enabled = false
 		end
 	elseif loop == "Generator" then
-		genHL = not genHL
 		if genHL then
 			local highlights = {}
 			for _, child in ipairs(Part:GetChildren()) do
@@ -379,7 +322,6 @@ local function HighLights(Part, loop)
 end
 
 local function checkGhost()
-	checkingGhost = not checkingGhost
 
 	if checkingGhost then
 		while checkingGhost do
@@ -435,31 +377,159 @@ local function Generator()
 	end
 end
 
-uis.InputBegan:connect(function(input, Processed)
-	if not Processed and input.KeyCode == Enum.KeyCode.R then
+local function BBLFinder()
+	local BBL = ws:FindFirstChild("BooBooDoll")
+
+	if BBL then
+		HighLights(BBL, BBLHL)
+	end
+end
+
+local ShadowstrikeBlitz = loadstring(game:HttpGet('https://raw.githubusercontent.com/ShadowstrikeBlitz/WindowPowerPoint/refs/heads/main/source.lua'))()
+
+local Window = ShadowstrikeBlitz:CreateWindow({
+	Name = "Blair",
+	LoadingTitle = "ShadowstrikeBlitz Project",
+	LoadingSubtitle = "by NotShadowstrikeBlitz",
+	ConfigurationSaving = {
+		Enabled = false,
+		FolderName = nil,
+		FileName = "NotShadowstrikeBlitz"
+	},
+	Discord = {
+		Enabled = false,
+		Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+		RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+	},
+	KeySystem = false, -- Set this to true to use our key system
+	KeySettings = {
+		Title = "Untitled",
+		Subtitle = "Private Key System",
+		Note = "To obtaining the key is not provided",
+		FileName = "FlashPointByNotShadowstrikeBlitz", -- It is recommended to use something unique as other scripts using ShadowstrikeBlitz may overwrite your key file
+		SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+		GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like ShadowstrikeBlitz to get the key from
+		Actions = {
+			[1] = {
+				Text = 'Click here to copy the key link <--',
+				OnPress = function()
+					print('Pressed')
+				end,
+			}
+		},
+		Key = {"NotShadowstrikeBlitz_WelcomesYou"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+	}
+})
+
+local main = Window:CreateTab("Main", 4384400118)
+local misc = Window:CreateTab("Misc", 4384400118)
+local extra = Window:CreateTab("Extra", 4384400118)
+
+local Toggle = main:CreateToggle({
+	Name = "Ghost Detection",
+	CurrentValue = false,
+	Flag = "GD",
+	Callback = function(Value)
+		checkingGhost = Value
 		checkGhost()
-	end
-	if not Processed and input.KeyCode == Enum.KeyCode.T then
+	end,
+})
+
+local Toggle = main:CreateToggle({
+	Name = "Temparature Checker",
+	CurrentValue = false,
+	Flag = "TC",
+	Callback = function(Value)
+		checkingTemperature = Value
 		toggleTemperatureCheck()
-	end
-	if not Processed and input.KeyCode == Enum.KeyCode.N then
-		toggleVision()
-	end
-	if not Processed and input.KeyCode == Enum.KeyCode.M then
-		printzonetemp()
-	end
-	if not Processed and input.KeyCode == Enum.KeyCode.Equals then
-		CurseObjects()
-	end
-	if not Processed and input.KeyCode == Enum.KeyCode.Minus then
+	end,
+})
+
+local Toggle = main:CreateToggle({
+	Name = "Generator",
+	CurrentValue = false,
+	Flag = "GEN",
+	Callback = function(Value)
+		genHL = Value
 		Generator()
-	end
-	if not Processed and input.KeyCode == Enum.KeyCode.P then
-		toggleui = not toggleui
+	end,
+})
+
+local Toggle = main:CreateToggle({
+	Name = "Curse Object Finder",
+	CurrentValue = false,
+	Flag = "COF",
+	Callback = function(Value)
+		itemsHL = Value
+		CurseObjects()
+	end,
+})
+
+local Toggle = main:CreateToggle({
+	Name = "Boo Boo Doll Finder",
+	CurrentValue = false,
+	Flag = "BBDF",
+	Callback = function(Value)
+		BBLHL = Value
+		BBLFinder()
+	end,
+})
+
+local Toggle = main:CreateToggle({
+	Name = "Toggle UI",
+	CurrentValue = true,
+	Flag = "TUI",
+	Callback = function(Value)
+		toggleui = Value
 		if toggleui then
 			screenui.Enabled = true
 		else
 			screenui.Enabled = false
 		end
+	end,
+})
+
+local Toggle = misc:CreateToggle({
+	Name = "TP Walk",
+	CurrentValue = false,
+	Flag = "TPW",
+	Callback = function(Value)
+		TPW = Value
+		if not Value then return end
+		local hb = runService.Heartbeat
+		local chr = plr.Character
+		local hum = chr and chr:FindFirstChild("Humanoid")
+		while TPW and chr and hum.Parent do
+			local delta = hb:Wait()
+			if hum.MoveDirection.Magnitude > 0 then
+					chr:TranslateBy(hum.MoveDirection* delta * TPWS)
+			end
+		end
+	end,
+})
+
+local Slider = misc:CreateSlider({
+	Name = "TP Walk Speed",
+	Range = {0, 40},
+	Increment = 1,
+	Suffix = "Speed",
+	CurrentValue = 0,
+	Flag = "Slider1",
+	Callback = function(Value)
+		TPWS = Value
+	end,
+})
+
+local Button = extra:CreateButton({
+	Name = "Infinite Yield",
+	Callback = function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+	end,
+})
+
+uis.InputBegan:connect(function(input, Processed)
+	if not Processed and input.KeyCode == Enum.KeyCode.N then
+	    Vision = not Vision
+		toggleVision()
 	end
 end)
